@@ -5,3 +5,4 @@ data/raw/
 .ipynb_checkpoints/
 CLAUDE.md
 data/processed/features.csv
+CV_VALUES.md
