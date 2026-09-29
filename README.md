@@ -153,6 +153,11 @@ never saw it (`results/tables/shortlist.csv`):
 - shortlist mean true pIC50 **5.32** vs dataset mean **4.25**
 - precision at the top decile: **40%** vs **10%** for random selection — **4× enrichment**
 
+The top of the list is `IRW`, `IRP`, `LRW`, `LRY`, `MRW` (measured pIC50 up to 6.64), and
+**14 of the 15 end in Trp, Tyr, Pro or Ala**. The ranking converged on the C-terminal SAR
+of §3 on its own — the model was never given that rule, and the shortlist is not a
+restatement of it but an independent arrival at the same place.
+
 ## 6. Fraction-level (mixture) labels
 
 The experiment that mirrors the real constraint. Peptides are pooled into synthetic
@@ -207,8 +212,13 @@ python3 -m venv .venv && ./.venv/bin/pip install -r requirements.txt
 ./.venv/bin/python run_all.py
 ```
 
-Downloads the data, rebuilds every table in `results/tables/` and every figure in
-`results/figures/`. Fixed seeds throughout; two runs give identical output.
+Downloads the data and rebuilds every table in `results/tables/` and every figure in
+`results/figures/`. Verified end to end: a full run takes ~20 min on 8 cores
+(nested CV ~7 min, mixtures ~10 min).
+
+Seeds are fixed throughout, so runs agree to ~14 significant figures. They are not
+bit-identical: parallel tree ensembles (`n_jobs=-1`) reduce in nondeterministic order,
+which perturbs the last few floating-point digits. No reported figure is affected.
 
 ```
 src/data.py        download + clean + aggregate replicates
