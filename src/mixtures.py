@@ -88,6 +88,13 @@ def main(k_sizes=(5, 10, 20), rules=("max", "weighted_sum"), n_repeat=5):
     print(f"peptides {n}   actives (top decile, pIC50>={thr:.2f}) = {n_act}   "
           f"recall measured at top-{K}")
     print(f"random-baseline recall = {K / n:.3f}\n")
+    # Reference ceiling: the same model trained on INDIVIDUAL labels, scored
+    # out-of-fold. Fraction-level results should be read against this, not
+    # against a perfect oracle.
+    from src.interpret import out_of_fold
+    ceil = recall_at_k(out_of_fold(X, y, "RandomForest"), is_active, K)
+    print(f"individual-label ceiling (OOF RandomForest) recall = {ceil:.3f}\n")
+
     print(f"{'rule':<14}{'bag size':>9}{'propagate':>22}{'MIL max-pool':>22}")
     print("-" * 78)
 
@@ -110,7 +117,7 @@ def main(k_sizes=(5, 10, 20), rules=("max", "weighted_sum"), n_repeat=5):
             rows.append({"rule": rule, "bag_size": k,
                          "propagate_mean": np.mean(rp), "propagate_std": np.std(rp),
                          "mil_mean": np.mean(rm), "mil_std": np.std(rm),
-                         "random": K / n})
+                         "random": K / n, "individual_label_ceiling": ceil})
             print(f"{rule:<14}{k:>9}"
                   f"{np.mean(rp):>14.3f} ±{np.std(rp):<6.3f}"
                   f"{np.mean(rm):>14.3f} ±{np.std(rm):<6.3f}")
@@ -123,6 +130,8 @@ def main(k_sizes=(5, 10, 20), rules=("max", "weighted_sum"), n_repeat=5):
     print(f"best MIL recall = {best.mil_mean:.3f} (rule={best['rule']}, "
           f"bag={int(best.bag_size)}) vs random {K / n:.3f}  "
           f"-> {best.mil_mean / (K / n):.1f}x enrichment")
+    print(f"that recovers {best.mil_mean / ceil:.0%} of the individual-label "
+          f"ceiling ({ceil:.3f}) while never seeing an individual label")
     print(f"\nwritten -> {TAB}/mixture_recovery.csv")
     return out
 
